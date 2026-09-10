@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="{{ config.BACKGROUND_COLOR }}">
+  <title>{{ config.CHATBOT_TITLE }}</title>
+  <style>
+    :root{
+      --primary: {{ config.PRIMARY_COLOR }};
+      --secondary: {{ config.SECONDARY_COLOR }};
+      --bg: {{ config.BACKGROUND_COLOR }};
+      --surface: {{ config.SURFACE_COLOR }};
+      --text: {{ config.TEXT_COLOR }};
+      --muted: {{ config.MUTED_COLOR }};
+      --user: {{ config.USER_BUBBLE_COLOR }};
+      --bot: {{ config.BOT_BUBBLE_COLOR }};
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:
+        radial-gradient(circle at 10% 10%, color-mix(in srgb,var(--primary) 20%,transparent), transparent 32%),
+        radial-gradient(circle at 90% 90%, color-mix(in srgb,var(--secondary) 18%,transparent), transparent 30%),
+        var(--bg);
+      color:var(--text);
+      display:flex; justify-content:center;
+    }
+    .app{
+      width:min(1100px,100%);
+      height:100%;
+      display:flex; flex-direction:column;
+      padding:12px;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; padding:14px 16px;
+      background:color-mix(in srgb,var(--surface) 90%,transparent);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:20px;
+      backdrop-filter:blur(16px);
+    }
+    .brand{display:flex;align-items:center;gap:12px;min-width:0}
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      font-weight:800;
+    }
+    h1{font-size:17px;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .domain{font-size:12px;color:var(--muted);margin-top:3px}
+    button{
+      border:0; cursor:pointer; color:var(--text);
+      font:inherit;
+    }
+    #clear{
+      padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.08)
+    }
+    #clear:hover{background:rgba(255,255,255,.14)}
+    main{
+      flex:1;min-height:0;overflow:auto;
+      padding:18px 4px;
+      scroll-behavior:smooth;
+    }
+    .welcome{
+      max-width:760px;margin:10vh auto 0;text-align:center;
+      padding:30px 18px;
+    }
+    .welcome .big{font-size:clamp(32px,7vw,58px);margin-bottom:12px}
+    .welcome h2{font-size:clamp(22px,4vw,32px);margin:0 0 10px}
+    .welcome p{color:var(--muted);line-height:1.6;margin:0}
+    .messages{display:flex;flex-direction:column;gap:12px;max-width:850px;margin:auto}
+    .msg{display:flex;gap:10px;align-items:flex-end}
+    .msg.user{justify-content:flex-end}
+    .bubble{
+      max-width:min(78%,760px);padding:12px 14px;border-radius:17px;
+      line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;
+      border:1px solid rgba(255,255,255,.07);
+    }
+    .user .bubble{background:var(--user);border-bottom-right-radius:5px}
+    .bot .bubble{background:var(--bot);border-bottom-left-radius:5px}
+    .avatar{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.08);font-size:13px;flex:none}
+    form{
+      display:flex;gap:9px;align-items:flex-end;
+      max-width:850px;margin:0 auto;
+      padding:9px;background:color-mix(in srgb,var(--surface) 94%,transparent);
+      border:1px solid rgba(255,255,255,.09);border-radius:18px;
+      box-shadow:0 10px 35px rgba(0,0,0,.2)
+    }
+    textarea{
+      flex:1;resize:none;max-height:150px;min-height:42px;
+      border:0;outline:0;background:transparent;color:var(--text);
+      font:inherit;padding:10px 8px;line-height:1.4
+    }
+    textarea::placeholder{color:var(--muted)}
+    #send{
+      width:44px;height:44px;border-radius:14px;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      font-size:19px;font-weight:700
+    }
+    #send:disabled{opacity:.5;cursor:not-allowed}
+    .typing{color:var(--muted);font-size:13px;padding:0 45px}
+    @media (max-width:600px){
+      .app{padding:7px}
+      header{border-radius:16px;padding:11px 12px}
+      .logo{width:38px;height:38px;border-radius:12px}
+      #clear{padding:8px 10px;font-size:12px}
+      main{padding:12px 2px}
+      .bubble{max-width:88%;font-size:14px}
+      form{border-radius:16px}
+      .welcome{margin-top:14vh;padding:20px 12px}
+    }
+    @media (min-width:1200px){.app{padding-top:18px;padding-bottom:18px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">AI</div>
+      <div>
+        <h1>{{ config.CHATBOT_TITLE }}</h1>
+        <div class="domain">{{ config.DOMAIN }}</div>
+      </div>
+    </div>
+    <button id="clear" type="button">New chat</button>
+  </header>
+
+  <main id="chat">
+    <section class="welcome" id="welcome">
+      <div class="big">✦</div>
+      <h2>{{ config.CHATBOT_TITLE }}</h2>
+      <p>{{ config.WELCOME_MESSAGE }}</p>
+    </section>
+    <section class="messages" id="messages"></section>
+  </main>
+
+  <form id="form">
+    <textarea id="input" rows="1" maxlength="4000" placeholder="Ask a question about {{ config.DOMAIN }}..." autocomplete="off"></textarea>
+    <button id="send" type="submit" aria-label="Send">➤</button>
+  </form>
+</div>
+
+<script>
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const send = document.getElementById("send");
+const messages = document.getElementById("messages");
+const welcome = document.getElementById("welcome");
+const chat = document.getElementById("chat");
+
+function addMessage(role, text){
+  welcome.style.display = "none";
+  const row = document.createElement("div");
+  row.className = "msg " + role;
+  const avatar = document.createElement("div");
+  avatar.className = "avatar";
+  avatar.textContent = role === "user" ? "You" : "AI";
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  bubble.textContent = text;
+  if(role === "user"){ row.appendChild(bubble); row.appendChild(avatar); }
+  else { row.appendChild(avatar); row.appendChild(bubble); }
+  messages.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping(){
+  const row = document.createElement("div");
+  row.id = "typing";
+  row.className = "typing";
+  row.textContent = "AI is thinking…";
+  messages.appendChild(row);
+  chat.scrollTop = chat.scrollHeight;
+}
+function hideTyping(){ document.getElementById("typing")?.remove(); }
+
+input.addEventListener("input", ()=>{
+  input.style.height = "auto";
+  input.style.height = Math.min(input.scrollHeight,150) + "px";
+});
+input.addEventListener("keydown", e=>{
+  if(e.key === "Enter" && !e.shiftKey){
+    e.preventDefault(); form.requestSubmit();
+  }
+});
+
+form.addEventListener("submit", async e=>{
+  e.preventDefault();
+  const message = input.value.trim();
+  if(!message || send.disabled) return;
+  addMessage("user", message);
+  input.value = ""; input.style.height = "auto"; send.disabled = true; showTyping();
+  try{
+    const res = await fetch("/api/chat", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message})
+    });
+    const data = await res.json();
+    hideTyping();
+    addMessage("bot", data.answer || data.error || "Something went wrong.");
+  }catch(err){
+    hideTyping();
+    addMessage("bot", "Could not connect to the server. Please try again.");
+  }finally{
+    send.disabled = false; input.focus();
+  }
+});
+
+document.getElementById("clear").addEventListener("click", async ()=>{
+  await fetch("/api/clear",{method:"POST"});
+  messages.innerHTML = "";
+  welcome.style.display = "";
+  input.focus();
+});
+</script>
+</body>
+</html>
